@@ -1,97 +1,94 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
-  const [student, setStudent] = useState(null);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [profile, setProfile] = useState({});
+  const [attendance, setAttendance] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [notices, setNotices] = useState([]);
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/");
-      return;
-    }
+    const headers = { Authorization: `Bearer ${token}` };
 
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/dashboard/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setStudent(res.data.student))
-      .catch(() => {
-        localStorage.removeItem("token");
-        navigate("/");
-      });
+    // profile
+    axios.get("http://localhost:5000/dashboard/profile", { headers })
+      .then(res => setProfile(res.data.student));
+
+    // attendance
+    axios.get("http://localhost:5000/attendance", { headers })
+      .then(res => setAttendance(res.data.attendance));
+
+    // courses
+    axios.get("http://localhost:5000/courses", { headers })
+      .then(res => setCourses(res.data.courses));
+
+    // notices
+    axios.get("http://localhost:5000/notices", { headers })
+      .then(res => setNotices(res.data.notices));
   }, []);
 
-  function handleLogout() {
-    localStorage.removeItem("token");
-    navigate("/");
-  }
-
-  if (!student) {
-    return (
-      <div className="bg-dark vh-100 d-flex justify-content-center align-items-center">
-        <div className="spinner-border text-light" role="status" />
-      </div>
-    );
-  }
+  const overallAttendance =
+    attendance.length > 0
+      ? Math.round(
+          attendance.reduce((acc, cur) => acc + cur.attendance_percent, 0) /
+            attendance.length
+        )
+      : 0;
 
   return (
-    <div className="bg-dark min-vh-100 p-4">
-      <div className="container">
+    <div className="bg-light min-vh-100 d-flex">
 
-        {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="text-white mb-0">Student Dashboard</h2>
-          <button className="btn btn-outline-light" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
+      {/* Sidebar */}
+      <div className="p-3 border-end" style={{ width: "250px" }}>
+        <h4>EduBase</h4>
+        <ul className="list-unstyled mt-4">
+          <li className="mb-3">Attendance</li>
+          <li className="mb-3">Notes</li>
+          <li className="mb-3">Assignments</li>
+          <li className="mb-3">Quizzes</li>
+        </ul>
+      </div>
 
-        {/* Profile Card */}
-        <div className="card mb-4">
-          <div className="card-body">
-            <h5 className="card-title mb-3">Profile</h5>
-            <div className="row">
-              <div className="col-md-6 mb-2">
-                <small className="text-muted">Name</small>
-                <p className="fw-bold mb-0">{student.name}</p>
-              </div>
-              <div className="col-md-6 mb-2">
-                <small className="text-muted">Roll Number</small>
-                <p className="fw-bold mb-0">{student.roll_no}</p>
-              </div>
-              <div className="col-md-6 mb-2">
-                <small className="text-muted">Email</small>
-                <p className="fw-bold mb-0">{student.email}</p>
-              </div>
-              <div className="col-md-6 mb-2">
-                <small className="text-muted">Phone</small>
-                <p className="fw-bold mb-0">{student.phone}</p>
-              </div>
-              <div className="col-md-6 mb-2">
-                <small className="text-muted">Department</small>
-                <p className="fw-bold mb-0">{student.department}</p>
-              </div>
-              <div className="col-md-6 mb-2">
-                <small className="text-muted">Year</small>
-                <p className="fw-bold mb-0">{student.year}</p>
-              </div>
-              <div className="col-md-6 mb-2">
-                <small className="text-muted">Residence</small>
-                <p className="fw-bold mb-0">{student.residence_type}</p>
-              </div>
-              <div className="col-md-6 mb-2">
-                <small className="text-muted">Transport</small>
-                <p className="fw-bold mb-0">{student.transport_type}</p>
-              </div>
+      {/* Main */}
+      <div className="flex-grow-1 p-4">
+
+        <h2>Welcome to Academics</h2>
+
+        {/* Cards */}
+        <div className="row mt-4">
+          <div className="col-md-4">
+            <div className="card p-3">
+              <h6>Overall Attendance</h6>
+              <h2>{overallAttendance}%</h2>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div className="card p-3">
+              <h6>Courses</h6>
+              <h2>{courses.length}</h2>
+            </div>
+          </div>
+
+          <div className="col-md-4">
+            <div className="card p-3">
+              <h6>Notifications</h6>
+              <h2>{notices.length}</h2>
             </div>
           </div>
         </div>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {/* Recent Activity */}
+        <div className="card mt-4 p-3">
+          <h5>Recent Courses</h5>
+          {courses.map((c, i) => (
+            <div key={i} className="border-bottom py-2">
+              {c.course_name} - {c.faculty_name}
+            </div>
+          ))}
+        </div>
 
       </div>
     </div>

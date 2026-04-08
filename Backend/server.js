@@ -188,3 +188,29 @@ app.get("/notices", verifyToken, (req, res) => {
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });
+
+
+app.get("/room", verifyToken, (req, res) => {
+  const sql = `
+    SELECT 
+      r.room_no,
+      r.capacity,
+      r.occupied_count,
+      h.hostel_name,
+      h.warden_name,
+      h.warden_contact
+    FROM RoomAllocations ra
+    JOIN Rooms r ON ra.room_no = r.room_no AND ra.hostel_id = r.hostel_id
+    JOIN Hostels h ON r.hostel_id = h.hostel_id
+    WHERE ra.student_roll_no = ?
+  `;
+
+  db.query(sql, [req.user.rollNo], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+
+    if (result.length === 0)
+      return res.json({ room: null });
+
+    res.json({ room: result[0] });
+  });
+});

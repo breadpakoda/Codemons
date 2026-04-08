@@ -1,49 +1,76 @@
-import React from 'react'
+import React, { useState } from 'react';
+import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+  const [rollNo, setRollNo] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/login`,
+        {
+          rollNo: rollNo,
+          password: password
+        }
+      );
+
+      // DEBUG
+      console.log(response.data);
+
+      if (response.data.success === true) {
+        localStorage.setItem("token", response.data.token);
+        navigate("/dashboard");
+      } else {
+        setError(response.data.message || "Login failed");
+      }
+
+    } catch (err) {
+      console.log(err);
+      setError(err.response?.data?.message || "Invalid credentials");
+    }
+  }
+
   return (
-    <div className="bg-dark d-flex justify-content-center align-items-center vh-100">
-      <form
-       
-        className="p-4 rounded shadow"
-        style={{
-          width: "350px",
-          background: "#1e1e1e",
-          color: "#fff",
-        }}
-      >
-        <h3 className="text-center mb-4">Student Login</h3>
+    <div className='bg-dark'>
+      <div className='d-flex vh-100 justify-content-center align-items-center'>
+        <form onSubmit={handleSubmit} className='bg-white border rounded p-5'>
+          <h1 className='mb-4'>Student Login</h1>
 
-        <div className="mb-3">
-          <label className="form-label">Roll Number</label>
-          <input
-            type="text"
-            className="form-control bg-secondary text-white border-0"
-            placeholder="Enter Roll No"
-       
-           
-            required
-          />
-        </div>
+          {error && <div className='alert alert-danger'>{error}</div>}
 
-        <div className="mb-3">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-control bg-secondary text-white border-0"
-            placeholder="Enter Password"
-            
-          
-            required
-          />
-        </div>
+          <div className='mb-3'>
+            <label className='form-label'>Roll Number</label>
+            <input
+              className='form-control'
+              type="text"
+              required
+              placeholder="Enter Roll No"
+              onChange={(e) => setRollNo(e.target.value)}
+            />
+          </div>
 
-        <button className="btn btn-outline-light w-100 mt-2">
-          Login
-        </button>
-      </form>
+          <div className='mb-3'>
+            <label className='form-label'>Password</label>
+            <input
+              className='form-control'
+              type="password"
+              required
+              placeholder="Enter password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button className='btn btn-primary mt-2 w-100'>Login</button>
+        </form>
+      </div>
     </div>
-  )
+  );
 }
 
-export default Login
+export default Login;

@@ -25,7 +25,7 @@ function Login() {
 
       if (response.data.success === true) {
         localStorage.setItem("token", response.data.token);
-        navigate("/dashboard");
+        window.location.href = "/attendance";
       } else {
         setError(response.data.message || "Login failed");
       }

@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./assets/Login";
-import Dashboard from "./assets/Dashboard";
 
 // Academics
 import Attendance from "./assets/Academics/Attendance";
@@ -21,38 +20,156 @@ import Events from "./assets/University/Events";
 import FeeBus from "./assets/University/Fee_bus";
 import FeeCollege from "./assets/University/Fee_college";
 
+// Layout (FIXED PATH)
+import Layout from "./Components/Layout";
+
+// Protected Route
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/" />;
 }
 
 function App() {
+  const token = localStorage.getItem("token");
+
   return (
     <BrowserRouter>
       <Routes>
 
-        <Route path="/" element={<Login />} />
-
-        <Route path="/dashboard" element={
-          <ProtectedRoute><Dashboard /></ProtectedRoute>
-        } />
+        {/* Login */}
+        <Route
+          path="/"
+          element={
+            token ? <Navigate to="/attendance" /> : <Login />
+          }
+        />
 
         {/* Academics */}
-        <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
-        <Route path="/assignment" element={<ProtectedRoute><Assignment /></ProtectedRoute>} />
-        <Route path="/notes" element={<ProtectedRoute><Notes /></ProtectedRoute>} />
-        <Route path="/quizes" element={<ProtectedRoute><Quizes /></ProtectedRoute>} />
-        <Route path="/calendar" element={<ProtectedRoute><Calander /></ProtectedRoute>} />
+        <Route
+          path="/attendance"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Attendance />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/assignment"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Assignment />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/notes"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Notes />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/quizes"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Quizes />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/calendar"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Calander />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* Hostel */}
-        <Route path="/complaints" element={<ProtectedRoute><Complaints /></ProtectedRoute>} />
-        <Route path="/fee-hostel" element={<ProtectedRoute><FeeHostel /></ProtectedRoute>} />
-        <Route path="/room" element={<ProtectedRoute><RoomDetails /></ProtectedRoute>} />
+        <Route
+          path="/room"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <RoomDetails />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/complaints"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Complaints />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/fee-hostel"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <FeeHostel />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* University */}
-        <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-        <Route path="/fee-bus" element={<ProtectedRoute><FeeBus /></ProtectedRoute>} />
-        <Route path="/fee-college" element={<ProtectedRoute><FeeCollege /></ProtectedRoute>} />
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Events />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/fee-bus"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <FeeBus />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/fee-college"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <FeeCollege />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" />} />
 
       </Routes>
     </BrowserRouter>

@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// DB Connection
+/* ───────── DB CONNECTION ───────── */
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -24,10 +24,11 @@ db.connect((err) => {
   console.log("Connected to MySQL");
 });
 
-// ─── Auth Middleware ─────────────────────────────
+/* ───────── AUTH MIDDLEWARE ───────── */
 function verifyToken(req, res, next) {
   const authHeader = req.headers["authorization"];
-  if (!authHeader) return res.status(403).json({ message: "No token" });
+  if (!authHeader)
+    return res.status(403).json({ message: "No token provided" });
 
   const token = authHeader.startsWith("Bearer ")
     ? authHeader.slice(7)
@@ -38,18 +39,18 @@ function verifyToken(req, res, next) {
     req.user = decoded;
     next();
   } catch {
-    return res.status(401).json({ message: "Invalid or expired token" });
+    return res.status(401).json({ message: "Invalid token" });
   }
 }
 
-// ─── LOGIN (NO HASHING) ─────────────────────────
+/* ───────── LOGIN (NO HASHING) ───────── */
 app.post("/login", (req, res) => {
   const { rollNo, password } = req.body;
 
   if (!rollNo || !password) {
     return res
       .status(400)
-      .json({ success: false, message: "Roll number and password are required" });
+      .json({ success: false, message: "Missing credentials" });
   }
 
   const sql = "SELECT * FROM Students WHERE roll_no = ?";
@@ -64,10 +65,7 @@ app.post("/login", (req, res) => {
 
     const user = result[0];
 
-    // ❗ plain password check
-    const isMatch = password === user.password;
-
-    if (!isMatch)
+    if (password !== user.password)
       return res
         .status(401)
         .json({ success: false, message: "Wrong password" });
@@ -82,7 +80,7 @@ app.post("/login", (req, res) => {
   });
 });
 
-// ─── PROFILE ───────────────────────────────────
+/* ───────── PROFILE ───────── */
 app.get("/dashboard/profile", verifyToken, (req, res) => {
   const sql = `
     SELECT roll_no, name, email, phone, department, year, residence_type, transport_type
@@ -92,14 +90,27 @@ app.get("/dashboard/profile", verifyToken, (req, res) => {
 
   db.query(sql, [req.user.rollNo], (err, result) => {
     if (err) return res.status(500).json({ message: "DB error" });
-    if (result.length === 0)
-      return res.status(404).json({ message: "Student not found" });
-
     res.json({ student: result[0] });
   });
 });
 
-// ─── ATTENDANCE ────────────────────────────────
+/* ───────── COURSES ───────── */
+app.get("/courses", verifyToken, (req, res) => {
+  const sql = `
+    SELECT c.course_code, c.course_name, f.name AS faculty_name
+    FROM Enrollments e
+    JOIN Courses c ON e.course_code = c.course_code
+    JOIN Faculty f ON c.faculty_email = f.email
+    WHERE e.student_roll_no = ?
+  `;
+
+  db.query(sql, [req.user.rollNo], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({ courses: result });
+  });
+});
+
+/* ───────── ATTENDANCE ───────── */
 app.get("/attendance", verifyToken, (req, res) => {
   const sql = `
     SELECT 
@@ -107,6 +118,8 @@ app.get("/attendance", verifyToken, (req, res) => {
       c.course_name,
       COUNT(*) AS total_classes,
       SUM(a.status = 'Present') AS present,
+      SUM(a.status = 'Absent') AS absent,
+      SUM(a.status = 'Late') AS late,
       ROUND(SUM(a.status = 'Present') / COUNT(*) * 100, 2) AS attendance_percent
     FROM Attendance a
     JOIN Courses c ON a.course_code = c.course_code
@@ -120,7 +133,7 @@ app.get("/attendance", verifyToken, (req, res) => {
   });
 });
 
-// ─── RESULTS ───────────────────────────────────
+/* ───────── RESULTS ───────── */
 app.get("/results", verifyToken, (req, res) => {
   const sql = `
     SELECT 
@@ -141,7 +154,7 @@ app.get("/results", verifyToken, (req, res) => {
   });
 });
 
-// ─── FEES ──────────────────────────────────────
+/* ───────── FEES ───────── */
 app.get("/fees", verifyToken, (req, res) => {
   const sql = `
     SELECT id, amount, type, status, due_date, notes
@@ -156,7 +169,22 @@ app.get("/fees", verifyToken, (req, res) => {
   });
 });
 
-// ─── START SERVER ──────────────────────────────
+/* ───────── NOTICES ───────── */
+app.get("/notices", verifyToken, (req, res) => {
+  const sql = `
+    SELECT title, content, created_at
+    FROM Notices
+    ORDER BY created_at DESC
+    LIMIT 5
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({ notices: result });
+  });
+});
+
+/* ───────── SERVER ───────── */
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });

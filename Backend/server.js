@@ -2,13 +2,16 @@ const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+const multer = require("multer");
+const fs = require("fs");
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* ───────── DB CONNECTION ───────── */
+/* ───────── MYSQL ───────── */
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -18,79 +21,83 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error("DB connection failed:", err.message);
+    console.error("MySQL error:", err.message);
     process.exit(1);
   }
-  console.log("Connected to MySQL");
+  console.log("MySQL Connected");
 });
 
-/* ───────── AUTH MIDDLEWARE ───────── */
-function verifyToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader)
-    return res.status(403).json({ message: "No token provided" });
+/* ───────── MONGODB ───────── */
+mongoose.connect("mongodb://127.0.0.1:27017/erp")
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
 
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.slice(7)
-    : authHeader;
+/* ───────── SCHEMAS ───────── */
+
+const Assignment = mongoose.model("Assignment", new mongoose.Schema({
+  course_code: String,
+  title: String,
+  description: String,
+  instructions: String,
+  due_date: String,
+  faculty_name: String,
+}));
+
+const Submission = mongoose.model("Submission", new mongoose.Schema({
+  student_roll_no: String,
+  course_code: String,
+  file_path: String,
+  submitted_at: Date,
+  status: String,
+}));
+
+const QuizResult = mongoose.model("QuizResult", new mongoose.Schema({
+  student_roll_no: String,
+  course_code: String,
+  marks: Number,
+  total: Number,
+  submitted_at: Date,
+}));
+
+/* ───────── FILE UPLOAD ───────── */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + "-" + file.originalname),
+});
+
+const upload = multer({ storage });
+app.use("/uploads", express.static("uploads"));
+
+/* ───────── AUTH ───────── */
+function verifyToken(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(403).json({ message: "No token" });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch {
-    return res.status(401).json({ message: "Invalid token" });
+    res.status(401).json({ message: "Invalid token" });
   }
 }
 
-/* ───────── LOGIN (NO HASHING) ───────── */
+/* ───────── LOGIN ───────── */
 app.post("/login", (req, res) => {
   const { rollNo, password } = req.body;
 
-  if (!rollNo || !password) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Missing credentials" });
-  }
+  db.query("SELECT * FROM Students WHERE roll_no=?", [rollNo], (err, result) => {
+    if (err) return res.status(500).json({ success: false });
 
-  const sql = "SELECT * FROM Students WHERE roll_no = ?";
-  db.query(sql, [rollNo], (err, result) => {
-    if (err)
-      return res.status(500).json({ success: false, message: "DB error" });
+    if (!result.length)
+      return res.status(401).json({ success: false, message: "User not found" });
 
-    if (result.length === 0)
-      return res
-        .status(401)
-        .json({ success: false, message: "User not found" });
+    if (password !== result[0].password)
+      return res.status(401).json({ success: false, message: "Wrong password" });
 
-    const user = result[0];
-
-    if (password !== user.password)
-      return res
-        .status(401)
-        .json({ success: false, message: "Wrong password" });
-
-    const token = jwt.sign(
-      { rollNo: user.roll_no, name: user.name },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ rollNo: result[0].roll_no }, process.env.JWT_SECRET);
 
     res.json({ success: true, token });
-  });
-});
-
-/* ───────── PROFILE ───────── */
-app.get("/dashboard/profile", verifyToken, (req, res) => {
-  const sql = `
-    SELECT roll_no, name, email, phone, department, year, residence_type, transport_type
-    FROM Students
-    WHERE roll_no = ?
-  `;
-
-  db.query(sql, [req.user.rollNo], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    res.json({ student: result[0] });
   });
 });
 
@@ -103,114 +110,157 @@ app.get("/courses", verifyToken, (req, res) => {
     JOIN Faculty f ON c.faculty_email = f.email
     WHERE e.student_roll_no = ?
   `;
-
   db.query(sql, [req.user.rollNo], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error" });
     res.json({ courses: result });
   });
 });
 
-/* ───────── ATTENDANCE ───────── */
+/* ───────── ATTENDANCE (FIXED) ───────── */
 app.get("/attendance", verifyToken, (req, res) => {
   const sql = `
     SELECT 
-      a.course_code,
       c.course_name,
-      COUNT(*) AS total_classes,
-      SUM(a.status = 'Present') AS present,
-      SUM(a.status = 'Absent') AS absent,
-      SUM(a.status = 'Late') AS late,
-      ROUND(SUM(a.status = 'Present') / COUNT(*) * 100, 2) AS attendance_percent
+      COUNT(a.status) AS total_classes,
+      SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS present_count,
+      ROUND(
+        (SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) / COUNT(a.status)) * 100,
+        2
+      ) AS attendance_percent
     FROM Attendance a
     JOIN Courses c ON a.course_code = c.course_code
     WHERE a.student_roll_no = ?
-    GROUP BY a.course_code, c.course_name
+    GROUP BY c.course_name
   `;
 
   db.query(sql, [req.user.rollNo], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error" });
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: "DB error" });
+    }
+
     res.json({ attendance: result });
   });
 });
 
-/* ───────── RESULTS ───────── */
-app.get("/results", verifyToken, (req, res) => {
-  const sql = `
-    SELECT 
-      r.course_code,
-      c.course_name,
-      r.internal_marks,
-      r.external_marks,
-      (r.internal_marks + r.external_marks) AS total_marks,
-      r.grade
-    FROM Results r
-    JOIN Courses c ON r.course_code = c.course_code
-    WHERE r.student_roll_no = ?
-  `;
+/* ───────── ASSIGNMENTS ───────── */
 
-  db.query(sql, [req.user.rollNo], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    res.json({ results: result });
-  });
+// details
+app.get("/assignment/details/:course", verifyToken, async (req, res) => {
+  const data = await Assignment.findOne({ course_code: req.params.course });
+  res.json({ assignment: data });
 });
 
-/* ───────── FEES ───────── */
-app.get("/fees", verifyToken, (req, res) => {
-  const sql = `
-    SELECT id, amount, type, status, due_date, notes
-    FROM Fees
-    WHERE student_roll_no = ?
-    ORDER BY due_date DESC
-  `;
-
-  db.query(sql, [req.user.rollNo], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    res.json({ fees: result });
+// check submission
+app.get("/assignment/submission/:course", verifyToken, async (req, res) => {
+  const sub = await Submission.findOne({
+    student_roll_no: req.user.rollNo,
+    course_code: req.params.course,
   });
+
+  if (!sub) return res.json({ submitted: false });
+
+  res.json({ submitted: true, data: sub });
 });
 
-/* ───────── NOTICES ───────── */
-app.get("/notices", verifyToken, (req, res) => {
-  const sql = `
-    SELECT title, content, created_at
-    FROM Notices
-    ORDER BY created_at DESC
-    LIMIT 5
-  `;
-
-  db.query(sql, (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    res.json({ notices: result });
+// submit
+app.post("/assignment/submit/:course", verifyToken, upload.single("file"), async (req, res) => {
+  const existing = await Submission.findOne({
+    student_roll_no: req.user.rollNo,
+    course_code: req.params.course,
   });
+
+  if (existing) return res.json({ message: "Already submitted" });
+
+  const assignment = await Assignment.findOne({ course_code: req.params.course });
+
+  const now = new Date();
+  const due = new Date(assignment.due_date);
+
+  const status = now <= due ? "Submitted On Time" : "Submitted Late";
+
+  await Submission.create({
+    student_roll_no: req.user.rollNo,
+    course_code: req.params.course,
+    file_path: req.file.path,
+    submitted_at: now,
+    status,
+  });
+
+  res.json({ status });
 });
 
-/* ───────── SERVER ───────── */
+// delete
+app.delete("/assignment/delete/:course", verifyToken, async (req, res) => {
+  const sub = await Submission.findOne({
+    student_roll_no: req.user.rollNo,
+    course_code: req.params.course,
+  });
+
+  if (!sub) return res.json({ message: "No submission" });
+
+  if (fs.existsSync(sub.file_path)) fs.unlinkSync(sub.file_path);
+
+  await Submission.deleteOne({ _id: sub._id });
+
+  res.json({ message: "Deleted" });
+});
+
+/* ───────── QUIZ ───────── */
+
+// get quiz
+app.get("/quiz/:course", verifyToken, async (req, res) => {
+  const quiz = await mongoose.connection
+    .collection("quizzes")
+    .findOne({ course_code: req.params.course });
+
+  res.json({ quiz });
+});
+
+// check attempt
+app.get("/quiz/check/:course", verifyToken, async (req, res) => {
+  const result = await QuizResult.findOne({
+    student_roll_no: req.user.rollNo,
+    course_code: req.params.course,
+  });
+
+  res.json({ attempted: !!result, result });
+});
+
+// submit
+app.post("/quiz/submit/:course", verifyToken, async (req, res) => {
+  const { answers } = req.body;
+
+  const existing = await QuizResult.findOne({
+    student_roll_no: req.user.rollNo,
+    course_code: req.params.course,
+  });
+
+  if (existing) {
+    return res.json({ message: "Already attempted", result: existing });
+  }
+
+  const quiz = await mongoose.connection
+    .collection("quizzes")
+    .findOne({ course_code: req.params.course });
+
+  let score = 0;
+
+  quiz.questions.forEach((q, i) => {
+    if (answers[i] === q.correct) score++;
+  });
+
+  const result = await QuizResult.create({
+    student_roll_no: req.user.rollNo,
+    course_code: req.params.course,
+    marks: score,
+    total: quiz.questions.length,
+    submitted_at: new Date(),
+  });
+
+  res.json(result);
+});
+
+/* ───────── START SERVER ───────── */
 app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
-});
-
-
-app.get("/room", verifyToken, (req, res) => {
-  const sql = `
-    SELECT 
-      r.room_no,
-      r.capacity,
-      r.occupied_count,
-      h.hostel_name,
-      h.warden_name,
-      h.warden_contact
-    FROM RoomAllocations ra
-    JOIN Rooms r ON ra.room_no = r.room_no AND ra.hostel_id = r.hostel_id
-    JOIN Hostels h ON r.hostel_id = h.hostel_id
-    WHERE ra.student_roll_no = ?
-  `;
-
-  db.query(sql, [req.user.rollNo], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-
-    if (result.length === 0)
-      return res.json({ room: null });
-
-    res.json({ room: result[0] });
-  });
+  console.log("Server running on port", process.env.PORT);
 });

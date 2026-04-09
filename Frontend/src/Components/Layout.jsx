@@ -26,10 +26,31 @@ function Layout({ children }) {
     window.location.href = "/";
   }
 
-  const getLinkStyle = (route) =>
-    path.includes(route)
-      ? { backgroundColor: "#ac0f0c", color: "white", textDecoration: "none", borderRadius: "4px", padding: "4px 8px", display: "inline-block", border: "1px solid transparent", cursor: "pointer" }
-      : { textDecoration: "none", color: "#ac0f0c", background: "none", padding: "4px 8px", cursor: "pointer", border: "1px solid transparent" };
+
+  const sidebarButtonStyle = {
+    backgroundColor: "#ac0f0c",
+    color: "white",
+    textDecoration: "none",
+    borderRadius: "6px",
+    padding: "10px 12px",
+    display: "block",
+    border: "1px solid #ac0f0c",
+    cursor: "pointer",
+    transition: "background-color 0.2s ease, color 0.2s ease, outline 0.2s ease, border-color 0.2s ease",
+  };
+
+  const handleSidebarHover = (event, hover) => {
+    const target = event.currentTarget;
+    if (hover) {
+      target.style.backgroundColor = "white";
+      target.style.color = "#ac0f0c";
+      target.style.outline = "1px solid #ac0f0c";
+    } else {
+      target.style.backgroundColor = "#ac0f0c";
+      target.style.color = "white";
+      target.style.outline = "none";
+    }
+  };
 
   return (
     <div className="d-flex min-vh-100 bg-light">
@@ -44,19 +65,59 @@ function Layout({ children }) {
             <p className="mt-4 text-muted">ACADEMICS</p>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <Link className="sidebar-link" to="/attendance" style={getLinkStyle("attendance")}>Attendance</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/attendance"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Attendance
+                </Link>
               </li>
               <li className="mb-2">
-                <Link className="sidebar-link" to="/notes" style={getLinkStyle("notes")}>Notes</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/notes"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Notes
+                </Link>
               </li>
               <li className="mb-2">
-                <Link className="sidebar-link" to="/assignment" style={getLinkStyle("assignment")}>Assignments</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/assignment"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Assignments
+                </Link>
               </li>
               <li className="mb-2">
-                <Link className="sidebar-link" to="/quizes" style={getLinkStyle("quizes")}>Quizzes</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/quizes"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Quizzes
+                </Link>
               </li>
               <li className="mb-2">
-                <Link className="sidebar-link" to="/calendar" style={getLinkStyle("calendar")}>Calendar</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/calendar"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Calendar
+                </Link>
               </li>
             </ul>
           </>
@@ -68,13 +129,37 @@ function Layout({ children }) {
             <p className="mt-4 text-muted">HOSTEL</p>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <Link className="sidebar-link" to="/room" style={getLinkStyle("room")}>Room Details</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/room"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Room Details
+                </Link>
               </li>
               <li className="mb-2">
-                <Link className="sidebar-link" to="/complaints" style={getLinkStyle("complaints")}>Complaints</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/complaints"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Complaints
+                </Link>
               </li>
               <li className="mb-2">
-                <Link className="sidebar-link" to="/fee-hostel" style={getLinkStyle("fee-hostel")}>Fee Hostel</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/fee-hostel"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Fee Hostel
+                </Link>
               </li>
             </ul>
           </>
@@ -86,13 +171,37 @@ function Layout({ children }) {
             <p className="mt-4 text-muted">UNIVERSITY</p>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <Link className="sidebar-link" to="/events" style={getLinkStyle("events")}>Events</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/events"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Events
+                </Link>
               </li>
               <li className="mb-2">
-                <Link className="sidebar-link" to="/fee-bus" style={getLinkStyle("fee-bus")}>Bus Fee</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/fee-bus"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  Bus Fee
+                </Link>
               </li>
               <li className="mb-2">
-                <Link className="sidebar-link" to="/fee-college" style={getLinkStyle("fee-college")}>College Fee</Link>
+                <Link
+                  className="sidebar-link"
+                  to="/fee-college"
+                  style={sidebarButtonStyle}
+                  onMouseEnter={(e) => handleSidebarHover(e, true)}
+                  onMouseLeave={(e) => handleSidebarHover(e, false)}
+                >
+                  College Fee
+                </Link>
               </li>
 
               {/* ✅ NEW EXAM BUTTON */}

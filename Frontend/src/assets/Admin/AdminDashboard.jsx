@@ -50,23 +50,53 @@ function AdminDashboard() {
       <div style={{ width: "250px" }} className="bg-dark text-white p-3">
         <h4>Admin</h4>
 
-        <button className="btn btn-light w-100 mt-2" onClick={() => setPage("students")}>
+        <button 
+          className="btn w-100 mt-2" 
+          style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white", transition: "all 0.3s ease" }}
+          onMouseEnter={(e) => { e.target.style.backgroundColor = "white"; e.target.style.color = "#ac0f0c"; }}
+          onMouseLeave={(e) => { e.target.style.backgroundColor = "#ac0f0c"; e.target.style.color = "white"; }}
+          onClick={() => setPage("students")}
+        >
           Students
         </button>
 
-        <button className="btn btn-light w-100 mt-2" onClick={() => setPage("faculty")}>
+        <button 
+          className="btn w-100 mt-2" 
+          style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white", transition: "all 0.3s ease" }}
+          onMouseEnter={(e) => { e.target.style.backgroundColor = "white"; e.target.style.color = "#ac0f0c"; }}
+          onMouseLeave={(e) => { e.target.style.backgroundColor = "#ac0f0c"; e.target.style.color = "white"; }}
+          onClick={() => setPage("faculty")}
+        >
           Faculty
         </button>
 
-        <button className="btn btn-light w-100 mt-2" onClick={() => setPage("events")}>
+        <button 
+          className="btn w-100 mt-2" 
+          style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white", transition: "all 0.3s ease" }}
+          onMouseEnter={(e) => { e.target.style.backgroundColor = "white"; e.target.style.color = "#ac0f0c"; }}
+          onMouseLeave={(e) => { e.target.style.backgroundColor = "#ac0f0c"; e.target.style.color = "white"; }}
+          onClick={() => setPage("events")}
+        >
           Events
         </button>
 
-        <button className="btn btn-light w-100 mt-2" onClick={() => setPage("complaints")}>
+        <button 
+          className="btn w-100 mt-2" 
+          style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white", transition: "all 0.3s ease" }}
+          onMouseEnter={(e) => { e.target.style.backgroundColor = "white"; e.target.style.color = "#ac0f0c"; }}
+          onMouseLeave={(e) => { e.target.style.backgroundColor = "#ac0f0c"; e.target.style.color = "white"; }}
+          onClick={() => setPage("complaints")}
+        >
           Complaints
         </button>
 
-        <button className="btn btn-danger w-100 mt-5" onClick={logout}>
+        <button 
+          className="btn w-100 mt-5" 
+          style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white", transition: "all 0.3s ease" }}
+          onMouseEnter={(e) => { e.target.style.backgroundColor = "white"; e.target.style.color = "#ac0f0c"; }}
+          onMouseLeave={(e) => { e.target.style.backgroundColor = "#ac0f0c"; e.target.style.color = "white"; }}
+          onClick={logout}
+        >
           Logout
         </button>
       </div>
@@ -97,7 +127,10 @@ function AdminDashboard() {
                   <small>Status: {c.status}</small>
 
                   <button
-                    className="btn btn-danger btn-sm mt-2"
+                    className="btn btn-sm mt-2"
+                    style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white", transition: "all 0.3s ease" }}
+                    onMouseEnter={(e) => { e.target.style.backgroundColor = "white"; e.target.style.color = "#ac0f0c"; }}
+                    onMouseLeave={(e) => { e.target.style.backgroundColor = "#ac0f0c"; e.target.style.color = "white"; }}
                     onClick={() => deleteComplaint(c._id)}
                   >
                     Delete

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import axios from "axios";
-import { useNavigate } from 'react-router-dom';
+
 
 function Login() {
   const [rollNo, setRollNo] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -40,12 +40,12 @@ function Login() {
     <div className='bg-dark'>
       <div className='d-flex vh-100 justify-content-center align-items-center'>
         <form onSubmit={handleSubmit} className='bg-white border rounded p-5'>
-          <h1 className='mb-4'>Student Login</h1>
+          <h1 className='mb-4' style={{ color: "#ac0f0c" }}>Student Login</h1>
 
           {error && <div className='alert alert-danger'>{error}</div>}
 
           <div className='mb-3'>
-            <label className='form-label'>Roll Number</label>
+            <label className='form-label' style={{ color: "#ac0f0c" }}>Roll Number</label>
             <input
               className='form-control'
               type="text"
@@ -56,7 +56,7 @@ function Login() {
           </div>
 
           <div className='mb-3'>
-            <label className='form-label'>Password</label>
+            <label className='form-label' style={{ color: "#ac0f0c" }}>Password</label>
             <input
               className='form-control'
               type="password"
@@ -66,7 +66,14 @@ function Login() {
             />
           </div>
 
-          <button className='btn btn-primary mt-2 w-100'>Login</button>
+          <button 
+            className='btn btn-primary mt-2 w-100' 
+            style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white", transition: "all 0.3s ease" }}
+            onMouseEnter={(e) => { e.target.style.backgroundColor = "white"; e.target.style.color = "#ac0f0c"; }}
+            onMouseLeave={(e) => { e.target.style.backgroundColor = "#ac0f0c"; e.target.style.color = "white"; }}
+          >
+            Login
+          </button>
         </form>
       </div>
     </div>

@@ -17,8 +17,16 @@ function TeacherDashboard() {
     <div className="d-flex" style={{ minHeight: "100vh" }}>
 
       {/* SIDEBAR */}
-      <div style={{ width: "250px" }} className="bg-dark text-white p-3">
+      <div
+        style={{
+          width: "250px",
+          borderRight: "1px solid #ddd",
+          backgroundColor: "white",
+        }}
+        className="text-dark p-3"
+      >
         <h4>Teacher Panel</h4>
+
 
         <button className="btn btn-light w-100 mt-2"
           onClick={() => setPage("attendance")}>

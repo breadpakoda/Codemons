@@ -6,98 +6,65 @@ function Assignment() {
   const [loading, setLoading] = useState(true);
 
   const [selected, setSelected] = useState(null);
-  const [details, setDetails] = useState(null);
-
   const [file, setFile] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
-  const [status, setStatus] = useState("");
 
-  const token = localStorage.getItem("token");
   const API = "http://localhost:5000";
+  const token = localStorage.getItem("token");
 
-  /* ───────── FETCH COURSES ───────── */
+  const headers = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+
   useEffect(() => {
-    axios
-      .get(`${API}/courses`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        const data = res.data.courses.map((c, i) => ({
-          id: i,
-          course_code: c.course_code,
-          title: `${c.course_name} Assignment`,
-          faculty: c.faculty_name,
-          due_date: "2026-05-01",
-        }));
-
-        setAssignments(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetchAssignments();
   }, []);
 
-  /* ───────── OPEN POPUP ───────── */
-  async function openDetails(course_code) {
-    try {
-      const res = await axios.get(
-        `${API}/assignment/details/${course_code}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  const fetchAssignments = () => {
+    axios
+      .get(`${API}/assignment`)
+      .then((res) => {
+        setAssignments(res.data.assignments);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
+      });
+  };
 
-      const check = await axios.get(
-        `${API}/assignment/submission/${course_code}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setDetails(res.data.assignment);
-      setSelected(course_code);
-
-      setSubmitted(check.data.submitted);
-      setStatus(check.data.data?.status || "");
-
-      setFile(null);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  function closeModal() {
-    setSelected(null);
-    setDetails(null);
+  // ================= OPEN POPUP =================
+  const openModal = (assignment) => {
+    setSelected(assignment);
     setFile(null);
-  }
+  };
 
-  /* ───────── SUBMIT FILE ───────── */
-  function handleSubmit() {
+  const closeModal = () => {
+    setSelected(null);
+    setFile(null);
+  };
+
+  // ================= SUBMIT =================
+  const submitAssignment = () => {
     if (!file) return alert("Select file");
 
     const formData = new FormData();
     formData.append("file", file);
 
     axios
-      .post(`${API}/assignment/submit/${selected}`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .post(
+        `${API}/assignment/submit/${selected._id}`,
+        formData,
+        headers
+      )
       .then(() => {
-        alert("Done ✅");
-        closeModal(); // 🔥 auto close
+        alert("Submitted successfully");
+        closeModal();
       })
-      .catch(() => alert("Upload failed"));
-  }
-
-  /* ───────── DELETE ───────── */
-  function handleDelete() {
-    axios
-      .delete(`${API}/assignment/delete/${selected}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(() => {
-        alert("Deleted");
-        setSubmitted(false);
-        setStatus("");
-      })
-      .catch(() => alert("Delete failed"));
-  }
+      .catch((err) => {
+        console.log(err.response?.data || err.message);
+        alert("Upload failed");
+      });
+  };
 
   if (loading) return <div>Loading...</div>;
 
@@ -105,34 +72,50 @@ function Assignment() {
     <div>
       <h2 className="mb-4">Assignments</h2>
 
-      {/* TABLE */}
       <div className="card p-3">
         <table className="table">
           <thead>
             <tr>
               <th>Title</th>
-              <th>Faculty</th>
-              <th>Due Date</th>
+              <th>Course</th>
+              <th>Instructions</th>
+              <th>File</th>
             </tr>
           </thead>
 
           <tbody>
             {assignments.length === 0 ? (
               <tr>
-                <td colSpan="3" className="text-center">
+                <td colSpan="4" className="text-center">
                   No assignments
                 </td>
               </tr>
             ) : (
               assignments.map((a) => (
                 <tr
-                  key={a.id}
+                  key={a._id}
                   style={{ cursor: "pointer" }}
-                  onClick={() => openDetails(a.course_code)}
+                  onClick={() => openModal(a)}
                 >
                   <td>{a.title}</td>
-                  <td>{a.faculty}</td>
-                  <td>{a.due_date}</td>
+                  <td>{a.course_code}</td>
+                  <td>{a.instructions || "No instructions"}</td>
+
+                  <td>
+                    {a.file ? (
+                      <a
+                        href={`${API}/uploads/assignment-teacher/${a.file}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="btn btn-primary btn-sm"
+                      >
+                        View File
+                      </a>
+                    ) : (
+                      "No File"
+                    )}
+                  </td>
                 </tr>
               ))
             )}
@@ -140,65 +123,34 @@ function Assignment() {
         </table>
       </div>
 
-      {/* POPUP */}
-      {selected && details && (
+      {/* ================= POPUP ================= */}
+      {selected && (
         <div className="modal d-block" style={{ background: "#00000088" }}>
           <div className="modal-dialog">
             <div className="modal-content">
 
-              {/* HEADER */}
               <div className="modal-header">
-                <h5>{details.title}</h5>
+                <h5>{selected.title}</h5>
                 <button className="btn-close" onClick={closeModal}></button>
               </div>
 
-              {/* BODY */}
-              <div
-                className="modal-body"
-                style={{ maxHeight: "350px", overflowY: "auto" }}
-              >
-                <p><strong>Faculty:</strong> {details.faculty_name}</p>
-                <p><strong>Due Date:</strong> {details.due_date}</p>
-
-                <hr />
-
-                <p><strong>Description:</strong></p>
-                <p>{details.description}</p>
-
+              <div className="modal-body">
+                <p><strong>Course:</strong> {selected.course_code}</p>
                 <p><strong>Instructions:</strong></p>
-                <p>{details.instructions}</p>
+                <p>{selected.instructions}</p>
 
-                <hr />
+                <input
+                  type="file"
+                  className="form-control mt-3"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
 
-                {!submitted ? (
-                  <>
-                    <input
-                      type="file"
-                      className="form-control mb-3"
-                      onChange={(e) => setFile(e.target.files[0])}
-                    />
-
-                    <button
-                      className="btn btn-primary w-100"
-                      onClick={handleSubmit}
-                    >
-                      Submit Assignment
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-success text-center mb-3">
-                      <strong>Done ✅ ({status})</strong>
-                    </div>
-
-                    <button
-                      className="btn btn-danger w-100"
-                      onClick={handleDelete}
-                    >
-                      Delete & Re-submit
-                    </button>
-                  </>
-                )}
+                <button
+                  className="btn btn-success w-100 mt-3"
+                  onClick={submitAssignment}
+                >
+                  Submit Assignment
+                </button>
               </div>
 
             </div>

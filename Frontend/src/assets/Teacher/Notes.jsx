@@ -61,6 +61,8 @@ function Notes() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("title", form.title);
+    formData.append("course_code", form.course_code);
 
     axios
       .post(`${API}/teacher/upload-note`, formData, headers)

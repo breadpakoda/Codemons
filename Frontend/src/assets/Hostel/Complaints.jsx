@@ -48,7 +48,7 @@ function Complaints() {
 
   return (
     <div>
-      <h2 className="mb-3">Complaints</h2>
+      <h2 className="mb-3" style={{ color: "#ac0f0c" }}>Complaints</h2>
 
       {/* Input */}
       <div className="mb-3">
@@ -58,18 +58,18 @@ function Complaints() {
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <button className="btn btn-primary mt-2" onClick={handleSubmit}>
+        <button className="btn btn-primary mt-2 btn-custom" style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }} onClick={handleSubmit}>
           Submit
         </button>
       </div>
 
       {/* Cards */}
       {complaints.length === 0 ? (
-        <p>No complaints yet</p>
+        <p style={{ color: "#ac0f0c" }}>No complaints yet</p>
       ) : (
         complaints.map((c) => (
-          <div key={c._id} className="card p-3 mb-2">
-            <p>{c.text}</p>
+          <div key={c._id} className="card p-3 mb-2 shadow-hover">
+            <p style={{ color: "#ac0f0c" }}>{c.text}</p>
 
             <div className="d-flex justify-content-between">
               <span
@@ -81,7 +81,8 @@ function Complaints() {
               </span>
 
               <button
-                className="btn btn-danger btn-sm"
+                className="btn btn-danger btn-sm btn-custom"
+                style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }}
                 onClick={() => deleteComplaint(c._id)}
               >
                 Delete

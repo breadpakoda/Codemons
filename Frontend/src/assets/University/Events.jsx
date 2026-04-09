@@ -14,19 +14,19 @@ function Events() {
 
   return (
     <div>
-      <h2 className="mb-3">College Events</h2>
+      <h2 className="mb-3" style={{ color: "#ac0f0c" }}>College Events</h2>
 
       {events.length === 0 ? (
-        <p>No upcoming events</p>
+        <p style={{ color: "#ac0f0c" }}>No upcoming events</p>
       ) : (
         events.map((e) => (
-          <div key={e._id} className="card p-3 mb-3">
-            <h5>{e.title}</h5>
-            <p>{e.description}</p>
+          <div key={e._id} className="card p-3 mb-3 shadow-hover">
+            <h5 style={{ color: "#ac0f0c" }}>{e.title}</h5>
+            <p style={{ color: "#ac0f0c" }}>{e.description}</p>
 
             <div className="d-flex justify-content-between">
-              <span>{e.date}</span>
-              <span>{e.location}</span>
+              <span style={{ color: "#ac0f0c" }}>{e.date}</span>
+              <span style={{ color: "#ac0f0c" }}>{e.location}</span>
             </div>
           </div>
         ))

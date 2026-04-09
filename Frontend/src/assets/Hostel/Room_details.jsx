@@ -27,39 +27,39 @@ function RoomDetails() {
 
   return (
     <div>
-      <h2 className="mb-4">Hostel Details</h2>
+      <h2 className="mb-4" style={{ color: "#ac0f0c" }}>Hostel Details</h2>
 
-      <div className="card p-4">
+      <div className="card p-4 shadow-hover">
         <div className="row">
 
           <div className="col-md-6 mb-3">
-            <strong>Hostel:</strong>
-            <p>{room.hostel_name}</p>
+            <strong style={{ color: "#ac0f0c" }}>Hostel:</strong>
+            <p style={{ color: "#ac0f0c" }}>{room.hostel_name}</p>
           </div>
 
           <div className="col-md-6 mb-3">
-            <strong>Room No:</strong>
-            <p>{room.room_no}</p>
+            <strong style={{ color: "#ac0f0c" }}>Room No:</strong>
+            <p style={{ color: "#ac0f0c" }}>{room.room_no}</p>
           </div>
 
           <div className="col-md-6 mb-3">
-            <strong>Capacity:</strong>
-            <p>{room.capacity}</p>
+            <strong style={{ color: "#ac0f0c" }}>Capacity:</strong>
+            <p style={{ color: "#ac0f0c" }}>{room.capacity}</p>
           </div>
 
           <div className="col-md-6 mb-3">
-            <strong>Occupied:</strong>
-            <p>{room.occupied_count}</p>
+            <strong style={{ color: "#ac0f0c" }}>Occupied:</strong>
+            <p style={{ color: "#ac0f0c" }}>{room.occupied_count}</p>
           </div>
 
           <div className="col-md-6 mb-3">
-            <strong>Warden:</strong>
-            <p>{room.warden_name}</p>
+            <strong style={{ color: "#ac0f0c" }}>Warden:</strong>
+            <p style={{ color: "#ac0f0c" }}>{room.warden_name}</p>
           </div>
 
           <div className="col-md-6 mb-3">
-            <strong>Contact:</strong>
-            <p>{room.warden_contact}</p>
+            <strong style={{ color: "#ac0f0c" }}>Contact:</strong>
+            <p style={{ color: "#ac0f0c" }}>{room.warden_contact}</p>
           </div>
 
         </div>

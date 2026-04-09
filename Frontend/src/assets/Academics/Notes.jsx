@@ -5,26 +5,13 @@ function Notes() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem("token");
+  const API = "http://localhost:5000";
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/courses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      .get(`${API}/notes`) // ✅ REAL API
       .then((res) => {
-        // simulate notes
-        const data = res.data.courses.map((c, i) => ({
-          id: i,
-          title: `${c.course_name} Notes`,
-          faculty: c.faculty_name,
-          description: "Lecture materials and important topics",
-          link: "#", // can replace with real PDF later
-        }));
-
-        setNotes(data);
+        setNotes(res.data.notes);
         setLoading(false);
       })
       .catch((err) => {
@@ -46,15 +33,28 @@ function Notes() {
           <div className="text-center">No notes available</div>
         ) : (
           notes.map((n) => (
-            <div className="col-md-4 mb-3" key={n.id}>
+            <div className="col-md-4 mb-3" key={n._id}>
               <div className="card p-3 h-100">
                 <h5>{n.title}</h5>
-                <p className="text-muted mb-1">{n.faculty}</p>
-                <p className="small">{n.description}</p>
 
-                <a href={n.link} className="btn btn-primary mt-auto">
-                  View Notes
-                </a>
+                <p className="small">
+                  {n.content || "No description"}
+                </p>
+
+                {/* 🔥 FILE LINK */}
+                {n.file ? (
+                  <a
+                    href={`${API}/uploads/notes/${n.file}`}
+                    target="_blank"
+                    className="btn btn-primary mt-auto"
+                  >
+                    View File
+                  </a>
+                ) : (
+                  <button className="btn btn-secondary mt-auto" disabled>
+                    No File
+                  </button>
+                )}
               </div>
             </div>
           ))

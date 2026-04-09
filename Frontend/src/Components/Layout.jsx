@@ -26,10 +26,10 @@ function Layout({ children }) {
     window.location.href = "/";
   }
 
-  const getActive = (route) =>
+  const getLinkStyle = (route) =>
     path.includes(route)
-      ? "bg-primary text-white rounded px-2 py-1"
-      : "";
+      ? { backgroundColor: "#ac0f0c", color: "white", textDecoration: "none", borderRadius: "4px", padding: "4px 8px", display: "inline-block", border: "1px solid transparent", cursor: "pointer" }
+      : { textDecoration: "none", color: "#ac0f0c", background: "none", padding: "4px 8px", cursor: "pointer", border: "1px solid transparent" };
 
   return (
     <div className="d-flex min-vh-100 bg-light">
@@ -44,19 +44,19 @@ function Layout({ children }) {
             <p className="mt-4 text-muted">ACADEMICS</p>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <Link className={getActive("attendance")} to="/attendance">Attendance</Link>
+                <Link className="sidebar-link" to="/attendance" style={getLinkStyle("attendance")}>Attendance</Link>
               </li>
               <li className="mb-2">
-                <Link className={getActive("notes")} to="/notes">Notes</Link>
+                <Link className="sidebar-link" to="/notes" style={getLinkStyle("notes")}>Notes</Link>
               </li>
               <li className="mb-2">
-                <Link className={getActive("assignment")} to="/assignment">Assignments</Link>
+                <Link className="sidebar-link" to="/assignment" style={getLinkStyle("assignment")}>Assignments</Link>
               </li>
               <li className="mb-2">
-                <Link className={getActive("quizes")} to="/quizes">Quizzes</Link>
+                <Link className="sidebar-link" to="/quizes" style={getLinkStyle("quizes")}>Quizzes</Link>
               </li>
               <li className="mb-2">
-                <Link className={getActive("calendar")} to="/calendar">Calendar</Link>
+                <Link className="sidebar-link" to="/calendar" style={getLinkStyle("calendar")}>Calendar</Link>
               </li>
             </ul>
           </>
@@ -68,13 +68,13 @@ function Layout({ children }) {
             <p className="mt-4 text-muted">HOSTEL</p>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <Link className={getActive("room")} to="/room">Room Details</Link>
+                <Link className="sidebar-link" to="/room" style={getLinkStyle("room")}>Room Details</Link>
               </li>
               <li className="mb-2">
-                <Link className={getActive("complaints")} to="/complaints">Complaints</Link>
+                <Link className="sidebar-link" to="/complaints" style={getLinkStyle("complaints")}>Complaints</Link>
               </li>
               <li className="mb-2">
-                <Link className={getActive("fee-hostel")} to="/fee-hostel">Fee Hostel</Link>
+                <Link className="sidebar-link" to="/fee-hostel" style={getLinkStyle("fee-hostel")}>Fee Hostel</Link>
               </li>
             </ul>
           </>
@@ -86,18 +86,18 @@ function Layout({ children }) {
             <p className="mt-4 text-muted">UNIVERSITY</p>
             <ul className="list-unstyled">
               <li className="mb-2">
-                <Link className={getActive("events")} to="/events">Events</Link>
+                <Link className="sidebar-link" to="/events" style={getLinkStyle("events")}>Events</Link>
               </li>
               <li className="mb-2">
-                <Link className={getActive("fee-bus")} to="/fee-bus">Bus Fee</Link>
+                <Link className="sidebar-link" to="/fee-bus" style={getLinkStyle("fee-bus")}>Bus Fee</Link>
               </li>
               <li className="mb-2">
-                <Link className={getActive("fee-college")} to="/fee-college">College Fee</Link>
+                <Link className="sidebar-link" to="/fee-college" style={getLinkStyle("fee-college")}>College Fee</Link>
               </li>
 
               {/* ✅ NEW EXAM BUTTON */}
               <li className="mb-2">
-                <button className="btn btn-link p-0" onClick={() => setShowExam(true)}>
+                <button className="btn btn-link p-0 sidebar-link" style={{ color: "#ac0f0c", textDecoration: "none", border: "none", textAlign: "left" }} onClick={() => setShowExam(true)}>
                   Exam
                 </button>
               </li>
@@ -134,13 +134,13 @@ function Layout({ children }) {
           boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
         }}
       >
-        <Link className={isAcademics ? "fw-bold mx-2" : "mx-2"} to="/attendance">
+        <Link className={isAcademics ? "fw-bold mx-2" : "mx-2"} to="/attendance" style={{ color: "#ac0f0c", textDecoration: "none" }}>
           Academics
         </Link>
-        <Link className={isHostel ? "fw-bold mx-2" : "mx-2"} to="/room">
+        <Link className={isHostel ? "fw-bold mx-2" : "mx-2"} to="/room" style={{ color: "#ac0f0c", textDecoration: "none" }}>
           Hostel
         </Link>
-        <Link className={isUniversity ? "fw-bold mx-2" : "mx-2"} to="/events">
+        <Link className={isUniversity ? "fw-bold mx-2" : "mx-2"} to="/events" style={{ color: "#ac0f0c", textDecoration: "none" }}>
           University
         </Link>
       </div>
@@ -177,7 +177,8 @@ function Layout({ children }) {
           }}
         >
           <button
-            className="btn btn-danger mb-3"
+            className="btn btn-danger mb-3 btn-custom"
+            style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }}
             onClick={() => {
               setShowExam(false);
               setSection(null);
@@ -188,17 +189,19 @@ function Layout({ children }) {
 
           {!section && (
             <>
-              <h5>Select Option</h5>
+              <h5 style={{ color: "#ac0f0c" }}>Select Option</h5>
 
               <button
-                className="btn btn-primary w-100 mb-2"
+                className="btn btn-primary w-100 mb-2 btn-custom"
+                style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }}
                 onClick={() => setSection("admit")}
               >
                 Admit Card
               </button>
 
               <button
-                className="btn btn-success w-100"
+                className="btn btn-success w-100 btn-custom"
+                style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }}
                 onClick={() => setSection("result")}
               >
                 Result
@@ -208,17 +211,17 @@ function Layout({ children }) {
 
           {section && (
             <>
-              <h5>{section === "admit" ? "Admit Card" : "Result"}</h5>
+              <h5 style={{ color: "#ac0f0c" }}>{section === "admit" ? "Admit Card" : "Result"}</h5>
 
-              <button className="btn btn-outline-dark w-100 mb-2">
+              <button className="btn btn-outline-dark w-100 mb-2 btn-custom" style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }}>
                 Mid Term 1
               </button>
 
-              <button className="btn btn-outline-dark w-100 mb-2">
+              <button className="btn btn-outline-dark w-100 mb-2 btn-custom" style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }}>
                 Mid Term 2
               </button>
 
-              <button className="btn btn-outline-dark w-100">
+              <button className="btn btn-outline-dark w-100 btn-custom" style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }}>
                 End Term
               </button>
             </>

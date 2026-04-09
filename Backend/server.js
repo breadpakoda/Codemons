@@ -35,14 +35,15 @@ mongoose.connect("mongodb://127.0.0.1:27017/erp")
 
 /* ───────── SCHEMAS ───────── */
 
-const Assignment = mongoose.model("Assignment", new mongoose.Schema({
-  course_code: String,
-  title: String,
-  description: String,
-  instructions: String,
-  due_date: String,
-  faculty_name: String,
-}));
+const Assignment = mongoose.model(
+  "Assignment",
+  new mongoose.Schema({
+    title: String,
+    instructions: String,
+    course_code: String,
+    file: String,
+  })
+);
 
 const Submission = mongoose.model("Submission", new mongoose.Schema({
   student_roll_no: String,
@@ -173,7 +174,17 @@ app.post("/assignment/submit/:course", verifyToken, upload.single("file"), async
 
   if (existing) return res.json({ message: "Already submitted" });
 
-  const assignment = await Assignment.findOne({ course_code: req.params.course });
+const assignment = await Assignment.findOne({
+  course_code: req.params.course, 
+});
+
+if (!assignment) {
+  return res.status(404).json({ message: "Assignment not found" });
+}
+
+res.json({
+  due_date: assignment.due_date || "", // safe
+});
 
   const now = new Date();
   const due = new Date(assignment.due_date);
@@ -760,6 +771,7 @@ const noteSchema = new mongoose.Schema({
   title: String,
   content: String,
   course_code: String,
+  file: String, // ✅ ADD THIS ONLY
 });
 
 const Note = mongoose.model("Note", noteSchema);
@@ -841,15 +853,24 @@ app.post(
   "/teacher/upload-note",
   verifyTeacher,
   upload.single("file"),
-  (req, res) => {
+  async (req, res) => {
     try {
+      const { title, course_code } = req.body;
+
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
+      const note = await Note.create({
+        title: title || req.file.originalname,
+        content: "",
+        course_code: course_code || "CS101",
+        file: req.file.filename, // ✅ LINK FILE
+      });
+
       res.json({
-        message: "File uploaded",
-        filename: req.file.filename,
+        message: "File uploaded & saved",
+        note,
       });
     } catch (err) {
       console.log(err);
@@ -858,6 +879,50 @@ app.post(
   }
 );
 
+
+
+const assignmentStorage = multer.diskStorage({
+  destination: (req, file, cb) =>
+    cb(null, "uploads/assignment-teacher"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + "-" + file.originalname),
+});
+
+const uploadAssignment = multer({ storage: assignmentStorage });
+
+
+
+app.post(
+  "/teacher/assignment",
+  verifyTeacher,
+  uploadAssignment.single("file"),
+  async (req, res) => {
+    try {
+      const assignment = await Assignment.create({
+        title: req.body.title,
+        instructions: req.body.instructions,
+        course_code: req.body.course_code,
+        file: req.file?.filename || "",
+      });
+
+      res.json({ message: "Assignment uploaded", assignment });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: "Error" });
+    }
+  }
+);
+
+app.get("/assignment", async (req, res) => {
+  const data = await Assignment.find();
+  res.json({ assignments: data });
+});
+
+
+app.delete("/teacher/assignment/:id", verifyTeacher, async (req, res) => {
+  await Assignment.deleteOne({ _id: req.params.id });
+  res.json({ message: "Deleted" });
+});
 
 
 

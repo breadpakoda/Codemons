@@ -45,21 +45,21 @@ function Fee_bus() {
       });
   };
 
-  if (!isBusUser) return <div>You are not a bus user</div>;
+  if (!isBusUser) return <div style={{ color: "#ac0f0c" }}>You are not a bus user</div>;
 
   return (
     <div>
-      <h2>Bus Fee</h2>
+      <h2 style={{ color: "#ac0f0c" }}>Bus Fee</h2>
 
       {!paymentStep ? (
         <>
-          <div className="card p-3 mb-3">
-            <p><strong>Name:</strong> {student?.name}</p>
-            <p><strong>Roll:</strong> {student?.roll_no}</p>
+          <div className="card p-3 mb-3 shadow-hover">
+            <p><strong style={{ color: "#ac0f0c" }}>Name:</strong> {student?.name}</p>
+            <p><strong style={{ color: "#ac0f0c" }}>Roll:</strong> {student?.roll_no}</p>
           </div>
 
-          <div className="card p-3 mb-3">
-            <h5>Select Distance</h5>
+          <div className="card p-3 mb-3 shadow-hover">
+            <h5 style={{ color: "#ac0f0c" }}>Select Distance</h5>
             <select
               className="form-control"
               value={distance}
@@ -71,11 +71,11 @@ function Fee_bus() {
             </select>
           </div>
 
-          <div className="card p-3 mb-3">
-            <h5>Fee: ₹{amount}</h5>
+          <div className="card p-3 mb-3 shadow-hover">
+            <h5 style={{ color: "#ac0f0c" }}>Fee: ₹{amount}</h5>
           </div>
 
-          <div className="card p-3 mb-3">
+          <div className="card p-3 mb-3 shadow-hover">
             <input
               className="form-control"
               placeholder="Remark"
@@ -84,23 +84,23 @@ function Fee_bus() {
             />
           </div>
 
-          <button className="btn btn-primary" onClick={() => setPaymentStep(true)}>
+          <button className="btn btn-primary btn-custom" style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }} onClick={() => setPaymentStep(true)}>
             Proceed to Payment
           </button>
         </>
       ) : (
         <>
-          <h4>Select Payment Method</h4>
+          <h4 style={{ color: "#ac0f0c" }}>Select Payment Method</h4>
 
-          <button className="btn btn-success m-2" onClick={() => handlePay("UPI")}>
+          <button className="btn btn-success m-2 btn-custom" style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }} onClick={() => handlePay("UPI")}>
             UPI
           </button>
 
-          <button className="btn btn-warning m-2" onClick={() => handlePay("Card")}>
+          <button className="btn btn-warning m-2 btn-custom" style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }} onClick={() => handlePay("Card")}>
             Card
           </button>
 
-          <button className="btn btn-secondary m-2" onClick={() => handlePay("Cash")}>
+          <button className="btn btn-secondary m-2 btn-custom" style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }} onClick={() => handlePay("Cash")}>
             Cash
           </button>
         </>
@@ -108,15 +108,19 @@ function Fee_bus() {
 
       {/* RECEIPT */}
       {receipt && (
-        <div className="card p-4 mt-4">
-          <h4>Receipt</h4>
-          <p><strong>Roll:</strong> {receipt.roll_no}</p>
-          <p><strong>Amount:</strong> ₹{receipt.amount}</p>
-          <p><strong>Method:</strong> {receipt.method}</p>
-          <p><strong>Remark:</strong> {receipt.remark}</p>
-          <p><strong>Date:</strong> {new Date(receipt.date).toLocaleString()}</p>
+        <div className="card p-4 mt-4 shadow-hover">
+          <h4 style={{ color: "#ac0f0c" }}>Receipt</h4>
+          <p><strong style={{ color: "#ac0f0c" }}>Roll:</strong> {receipt.roll_no}</p>
+          <p><strong style={{ color: "#ac0f0c" }}>Amount:</strong> ₹{receipt.amount}</p>
+          <p><strong style={{ color: "#ac0f0c" }}>Method:</strong> {receipt.method}</p>
+          <p><strong style={{ color: "#ac0f0c" }}>Remark:</strong> {receipt.remark}</p>
+          <p><strong style={{ color: "#ac0f0c" }}>Date:</strong> {new Date(receipt.date).toLocaleString()}</p>
 
-          <button className="btn btn-success" onClick={() => window.print()}>
+          <button
+            className="btn btn-success mt-2 btn-custom"
+            style={{ backgroundColor: "#ac0f0c", borderColor: "#ac0f0c", color: "white" }}
+            onClick={() => window.print()}
+          >
             Print
           </button>
         </div>

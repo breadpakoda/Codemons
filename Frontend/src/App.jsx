@@ -20,13 +20,27 @@ import Events from "./assets/University/Events";
 import FeeBus from "./assets/University/Fee_bus";
 import FeeCollege from "./assets/University/Fee_college";
 
-// Layout (FIXED PATH)
+// Layout
 import Layout from "./Components/Layout";
 
-// Protected Route
+// Admin
+import AdminLogin from "./assets/Admin/AdminLogin";
+import AdminDashboard from "./assets/Admin/AdminDashboard";
+
+// =======================
+// STUDENT PROTECTION
+// =======================
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/" />;
+}
+
+// =======================
+// ADMIN PROTECTION
+// =======================
+function AdminRoute({ children }) {
+  const token = localStorage.getItem("adminToken");
+  return token ? children : <Navigate to="/admin/login" />;
 }
 
 function App() {
@@ -36,7 +50,7 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* Login */}
+        {/* ================= LOGIN ================= */}
         <Route
           path="/"
           element={
@@ -44,7 +58,7 @@ function App() {
           }
         />
 
-        {/* Academics */}
+        {/* ================= ACADEMICS ================= */}
         <Route
           path="/attendance"
           element={
@@ -100,7 +114,7 @@ function App() {
           }
         />
 
-        {/* Hostel */}
+        {/* ================= HOSTEL ================= */}
         <Route
           path="/room"
           element={
@@ -134,7 +148,7 @@ function App() {
           }
         />
 
-        {/* University */}
+        {/* ================= UNIVERSITY ================= */}
         <Route
           path="/events"
           element={
@@ -168,7 +182,22 @@ function App() {
           }
         />
 
-        {/* Fallback */}
+        {/* ================= ADMIN ================= */}
+
+        {/* Admin Login */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+
+        {/* Admin Dashboard */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+
+        {/* ================= FALLBACK ================= */}
         <Route path="*" element={<Navigate to="/" />} />
 
       </Routes>

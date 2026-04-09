@@ -397,23 +397,7 @@ app.post("/hostel/pay", verifyToken, (req, res) => {
 });
 
 
-const handlePay = (method) => {
-  axios
-    .post(
-      `${API}/hostel/pay`,
-      {
-        roomType,
-        extraAmount: extra,
-        remark,
-        method,
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-    .then((res) => {
-      setReceipt(res.data.receipt); // ✅ store receipt
-      setPaymentStep(false);
-    });
-};
+
 
 
 // eventt
@@ -499,6 +483,201 @@ app.post("/bus/pay", verifyToken, (req, res) => {
     },
   });
 });
+
+app.post("/admin/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (username === "admin" && password === "admin123") {
+    const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET);
+    return res.json({ token });
+  }
+
+  res.status(401).json({ message: "Invalid admin" });
+});
+
+
+
+// student 
+// ================= ADMIN VERIFY =================
+function verifyAdmin(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) return res.status(403).json({ message: "No token" });
+
+  try {
+    const data = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (data.role !== "admin") {
+      return res.status(403).json({ message: "Not admin" });
+    }
+
+    next();
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+// ================= STUDENT DELETE (FIXED) =================
+app.delete("/admin/student/:roll", verifyAdmin, (req, res) => {
+  const roll = req.params.roll;
+
+  db.query("DELETE FROM Attendance WHERE student_roll_no=?", [roll], () => {
+    db.query("DELETE FROM Enrollments WHERE student_roll_no=?", [roll], () => {
+      db.query("DELETE FROM Results WHERE student_roll_no=?", [roll], () => {
+        db.query("DELETE FROM RoomAllocations WHERE student_roll_no=?", [roll], () => {
+          db.query("DELETE FROM BusAllocations WHERE student_roll_no=?", [roll], () => {
+            db.query("DELETE FROM Fees WHERE student_roll_no=?", [roll], () => {
+
+              db.query(
+                "DELETE FROM Students WHERE roll_no=?",
+                [roll],
+                (err) => {
+                  if (err) {
+                    console.log(err);
+                    return res.status(500).json({ message: "Delete failed" });
+                  }
+                  res.json({ message: "Deleted successfully" });
+                }
+              );
+
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+// ================= FACULTY DELETE =================
+app.delete("/admin/faculty/:email", verifyAdmin, (req, res) => {
+
+  db.query(
+    "UPDATE Courses SET faculty_email=NULL WHERE faculty_email=?",
+    [req.params.email],
+    () => {
+      db.query(
+        "DELETE FROM Faculty WHERE email=?",
+        [req.params.email],
+        (err) => {
+          if (err) return res.status(500).json({ message: "DB error" });
+          res.json({ message: "Deleted" });
+        }
+      );
+    }
+  );
+});
+
+// ================= EVENTS =================
+app.put("/admin/events/:id", verifyAdmin, async (req, res) => {
+  try {
+    await Event.updateOne({ _id: req.params.id }, req.body);
+    res.json({ message: "Updated" });
+  } catch {
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+app.delete("/admin/events/:id", verifyAdmin, async (req, res) => {
+  try {
+    await Event.deleteOne({ _id: req.params.id });
+    res.json({ message: "Deleted" });
+  } catch {
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+// ================= COMPLAINTS =================
+app.delete("/admin/complaints/:id", verifyAdmin, async (req, res) => {
+  try {
+    await Complaint.deleteOne({ _id: req.params.id });
+    res.json({ message: "Deleted" });
+  } catch {
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+// ================= GET DATA =================
+app.get("/admin/students", verifyAdmin, (req, res) => {
+  db.query("SELECT * FROM Students", (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({ students: result });
+  });
+});
+
+app.get("/admin/faculty", verifyAdmin, (req, res) => {
+  db.query("SELECT * FROM Faculty", (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({ faculty: result });
+  });
+});
+
+// ================= BULK SAVE =================
+app.post("/admin/students/bulk", verifyAdmin, (req, res) => {
+  const data = req.body;
+
+  data.forEach((s) => {
+    db.query("REPLACE INTO Students SET ?", s);
+  });
+
+  res.json({ message: "Saved" });
+});
+
+app.post("/admin/faculty/bulk", verifyAdmin, (req, res) => {
+  req.body.forEach((f) => {
+    db.query("REPLACE INTO Faculty SET ?", f);
+  });
+
+  res.json({ message: "Saved" });
+});
+
+
+app.get("/admin/complaints", verifyAdmin, async (req, res) => {
+  const complaints = await Complaint.find();
+  res.json({ complaints });
+});
+
+
+app.put("/admin/complaints/:id", verifyAdmin, async (req, res) => {
+  try {
+    await Complaint.updateOne(
+      { _id: req.params.id },
+      { status: req.body.status }
+    );
+    res.json({ message: "Updated" });
+  } catch {
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+
+app.put("/admin/complaints/:id", verifyAdmin, async (req, res) => {
+  try {
+    await Complaint.updateOne(
+      { _id: req.params.id },
+      { status: req.body.status }
+    );
+
+    res.json({ message: "Updated" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error updating" });
+  }
+});
+app.post("/admin/events", verifyAdmin, async (req, res) => {
+  try {
+    const event = new Event(req.body);
+    await event.save();
+    res.json({ message: "Event added" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error adding event" });
+  }
+});
+
+
+
+
+
 
 
 

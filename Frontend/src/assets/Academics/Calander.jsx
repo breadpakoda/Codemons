@@ -8,16 +8,18 @@ function Calander() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/courses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        // simulate calendar events
-        const data = res.data.courses.map((c, i) => ({
-          id: i,
+    const fetchData = async () => {
+      try {
+        // ================= COURSES =================
+        const courseRes = await axios.get(
+          "http://localhost:5000/courses",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const courseEvents = courseRes.data.courses.map((c, i) => ({
+          id: "c" + i,
           title: `${c.course_name} ${
             i % 2 === 0 ? "Assignment" : "Quiz"
           }`,
@@ -25,13 +27,33 @@ function Calander() {
           type: i % 2 === 0 ? "Assignment" : "Quiz",
         }));
 
-        setEvents(data);
+        // ================= EVENTS =================
+        const eventRes = await axios.get(
+          "http://localhost:5000/events"
+        );
+
+        const realEvents = eventRes.data.events.map((e) => ({
+          id: e._id,
+          title: e.title,
+          date: e.date,
+          type: "Event",
+        }));
+
+        // ================= MERGE + SORT =================
+        const merged = [...courseEvents, ...realEvents].sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
+
+        setEvents(merged);
         setLoading(false);
-      })
-      .catch((err) => {
+
+      } catch (err) {
         console.log(err);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   if (loading) {
@@ -51,6 +73,7 @@ function Calander() {
               <th>Type</th>
             </tr>
           </thead>
+
           <tbody>
             {events.length === 0 ? (
               <tr>
@@ -68,7 +91,9 @@ function Calander() {
                       className={`badge ${
                         e.type === "Assignment"
                           ? "bg-primary"
-                          : "bg-success"
+                          : e.type === "Quiz"
+                          ? "bg-success"
+                          : "bg-warning"
                       }`}
                     >
                       {e.type}

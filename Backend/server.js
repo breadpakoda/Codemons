@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const fs = require("fs");
+
 require("dotenv").config();
 
 const app = express();
@@ -61,7 +62,7 @@ const QuizResult = mongoose.model("QuizResult", new mongoose.Schema({
 
 /* ───────── FILE UPLOAD ───────── */
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, "uploads/notes"),
   filename: (req, file, cb) =>
     cb(null, Date.now() + "-" + file.originalname),
 });
@@ -675,10 +676,196 @@ app.post("/admin/events", verifyAdmin, async (req, res) => {
 });
 
 
+<<<<<<< HEAD
+=======
+function verifyTeacher(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) return res.status(403).json({ message: "No token" });
+
+  try {
+    const data = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (data.role !== "teacher") {
+      return res.status(403).json({ message: "Not teacher" });
+    }
+
+    req.user = data;
+    next();
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+
+app.post("/teacher/login", (req, res) => {
+  const { email, password } = req.body;
+
+  // 🔴 DEFAULT PASSWORD
+  const DEFAULT_PASSWORD = "1234";
+
+  db.query(
+    "SELECT * FROM Faculty WHERE email=?",
+    [email],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: "DB error" });
+
+      if (result.length === 0) {
+        return res.status(401).json({ message: "Invalid email" });
+      }
+
+      // 🔴 CHECK DEFAULT PASSWORD
+      if (password !== DEFAULT_PASSWORD) {
+        return res.status(401).json({ message: "Wrong password" });
+      }
+
+      const teacher = result[0];
+
+      const token = jwt.sign(
+        { email: teacher.email, role: "teacher" },
+        process.env.JWT_SECRET
+      );
+
+      res.json({ token });
+    }
+  );
+});
+
+
+app.get("/teacher/students", verifyTeacher, (req, res) => {
+  db.query("SELECT roll_no FROM Students", (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({ students: result });
+  });
+});
+
+app.post("/teacher/attendance", verifyTeacher, (req, res) => {
+  const { course_code, date, records } = req.body;
+
+  records.forEach((r) => {
+    db.query(
+      "REPLACE INTO Attendance SET ?",
+      {
+        student_roll_no: r.roll,
+        course_code,
+        date,
+        status: r.status,
+      }
+    );
+  });
+
+  res.json({ message: "Attendance saved" });
+});
+
+
+const noteSchema = new mongoose.Schema({
+  title: String,
+  content: String,
+  course_code: String,
+});
+
+const Note = mongoose.model("Note", noteSchema);
+
+// ADD
+app.post("/teacher/notes", verifyTeacher, async (req, res) => {
+  try {
+    const note = new Note(req.body);
+    await note.save();
+    res.json({ message: "Note added" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+// GET (for students + teacher)
+app.get("/notes", async (req, res) => {
+  const notes = await Note.find();
+  res.json({ notes });
+});
+
+// DELETE
+app.delete("/teacher/notes/:id", verifyTeacher, async (req, res) => {
+  try {
+    await Note.deleteOne({ _id: req.params.id });
+    res.json({ message: "Deleted" });
+  } catch {
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+
+const quizSchema = new mongoose.Schema({
+  title: String,
+  course_code: String,
+  questions: [
+    {
+      question: String,
+      options: [String],
+      answer: String,
+    },
+  ],
+});
+
+const Quiz = mongoose.model("Quiz", quizSchema);
+
+// CREATE QUIZ
+app.post("/teacher/quiz", verifyTeacher, async (req, res) => {
+  try {
+    const quiz = new Quiz(req.body);
+    await quiz.save();
+    res.json({ message: "Quiz created" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+app.get("/teacher/students", verifyTeacher, (req, res) => {
+  db.query("SELECT roll_no FROM Students", (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({ students: result });
+  });
+});
+>>>>>>> 1e7fd8d (only thing left is implimenting the ai agent, added the readme file)
 
 
 
 
+<<<<<<< HEAD
+=======
+// GET QUIZ (for students)
+app.get("/quiz", async (req, res) => {
+  const quizzes = await Quiz.find();
+  res.json({ quizzes });
+});
+
+
+
+app.post(
+  "/teacher/upload-note",
+  verifyTeacher,
+  upload.single("file"),
+  (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      res.json({
+        message: "File uploaded",
+        filename: req.file.filename,
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ message: "Upload failed" });
+    }
+  }
+);
+
+
+
+>>>>>>> 1e7fd8d (only thing left is implimenting the ai agent, added the readme file)
 
 
 

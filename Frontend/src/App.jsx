@@ -27,6 +27,13 @@ import Layout from "./Components/Layout";
 import AdminLogin from "./assets/Admin/AdminLogin";
 import AdminDashboard from "./assets/Admin/AdminDashboard";
 
+<<<<<<< HEAD
+=======
+// 🔥 TEACHER (NEW)
+import TeacherLogin from "./assets/Teacher/TeacherLogin";
+import TeacherDashboard from "./assets/Teacher/TeacherDashboard";
+
+>>>>>>> 1e7fd8d (only thing left is implimenting the ai agent, added the readme file)
 // =======================
 // STUDENT PROTECTION
 // =======================
@@ -43,6 +50,17 @@ function AdminRoute({ children }) {
   return token ? children : <Navigate to="/admin/login" />;
 }
 
+<<<<<<< HEAD
+=======
+// =======================
+// TEACHER PROTECTION (NEW)
+// =======================
+function TeacherRoute({ children }) {
+  const token = localStorage.getItem("teacherToken");
+  return token ? children : <Navigate to="/teacher/login" />;
+}
+
+>>>>>>> 1e7fd8d (only thing left is implimenting the ai agent, added the readme file)
 function App() {
   const token = localStorage.getItem("token");
 
@@ -58,6 +76,22 @@ function App() {
           }
         />
 
+<<<<<<< HEAD
+=======
+        {/* ================= TEACHER LOGIN (NEW) ================= */}
+        <Route path="/teacher/login" element={<TeacherLogin />} />
+
+        {/* ================= TEACHER DASHBOARD (NEW) ================= */}
+        <Route
+          path="/teacher"
+          element={
+            <TeacherRoute>
+              <TeacherDashboard />
+            </TeacherRoute>
+          }
+        />
+
+>>>>>>> 1e7fd8d (only thing left is implimenting the ai agent, added the readme file)
         {/* ================= ACADEMICS ================= */}
         <Route
           path="/attendance"
@@ -183,11 +217,16 @@ function App() {
         />
 
         {/* ================= ADMIN ================= */}
+<<<<<<< HEAD
 
         {/* Admin Login */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Admin Dashboard */}
+=======
+        <Route path="/admin/login" element={<AdminLogin />} />
+
+>>>>>>> 1e7fd8d (only thing left is implimenting the ai agent, added the readme file)
         <Route
           path="/admin"
           element={

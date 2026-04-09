@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 const API = "http://localhost:5000";
-const GEMINI_KEY = "your api key"; // 🔑 Replace with your key
+const GEMINI_KEY = "gemini api"; // 🔑 Replace with your key
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
 
 /* ── helpers ── */

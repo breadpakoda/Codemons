@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 function Layout({ children }) {
   const location = useLocation();
   const path = location.pathname;
+
+  const [showExam, setShowExam] = useState(false);
+  const [section, setSection] = useState(null);
 
   // Section detection
   const isHostel =
@@ -18,11 +21,8 @@ function Layout({ children }) {
 
   const isAcademics = !isHostel && !isUniversity;
 
-  // 🔴 LOGOUT (FINAL FIX)
   function handleLogout() {
     localStorage.removeItem("token");
-
-    // force full reload to reset auth state
     window.location.href = "/";
   }
 
@@ -94,6 +94,13 @@ function Layout({ children }) {
               <li className="mb-2">
                 <Link className={getActive("fee-college")} to="/fee-college">College Fee</Link>
               </li>
+
+              {/* ✅ NEW EXAM BUTTON */}
+              <li className="mb-2">
+                <button className="btn btn-link p-0" onClick={() => setShowExam(true)}>
+                  Exam
+                </button>
+              </li>
             </ul>
           </>
         )}
@@ -105,19 +112,14 @@ function Layout({ children }) {
             <div className="text-muted small">ERP System</div>
           </div>
 
-          <button
-            className="btn btn-danger w-100"
-            onClick={handleLogout}
-          >
+          <button className="btn btn-danger w-100" onClick={handleLogout}>
             Logout
           </button>
         </div>
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-grow-1 p-4">
-        {children}
-      </div>
+      <div className="flex-grow-1 p-4">{children}</div>
 
       {/* BOTTOM NAV */}
       <div
@@ -142,6 +144,87 @@ function Layout({ children }) {
           University
         </Link>
       </div>
+
+      {/* ✅ OVERLAY */}
+      {showExam && (
+        <div
+          onClick={() => setShowExam(false)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "#00000066",
+            zIndex: 999,
+          }}
+        />
+      )}
+
+      {/* ✅ SIDE DRAWER */}
+      {showExam && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            width: "350px",
+            height: "100%",
+            background: "#fff",
+            boxShadow: "-2px 0 10px rgba(0,0,0,0.2)",
+            padding: "20px",
+            zIndex: 1000,
+          }}
+        >
+          <button
+            className="btn btn-danger mb-3"
+            onClick={() => {
+              setShowExam(false);
+              setSection(null);
+            }}
+          >
+            Close
+          </button>
+
+          {!section && (
+            <>
+              <h5>Select Option</h5>
+
+              <button
+                className="btn btn-primary w-100 mb-2"
+                onClick={() => setSection("admit")}
+              >
+                Admit Card
+              </button>
+
+              <button
+                className="btn btn-success w-100"
+                onClick={() => setSection("result")}
+              >
+                Result
+              </button>
+            </>
+          )}
+
+          {section && (
+            <>
+              <h5>{section === "admit" ? "Admit Card" : "Result"}</h5>
+
+              <button className="btn btn-outline-dark w-100 mb-2">
+                Mid Term 1
+              </button>
+
+              <button className="btn btn-outline-dark w-100 mb-2">
+                Mid Term 2
+              </button>
+
+              <button className="btn btn-outline-dark w-100">
+                End Term
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
     </div>
   );

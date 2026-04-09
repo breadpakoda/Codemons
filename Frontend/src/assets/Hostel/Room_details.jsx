@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-function Room_details() {
+function RoomDetails() {
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -11,27 +11,23 @@ function Room_details() {
   useEffect(() => {
     axios
       .get(`${API}/room`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
         setRoom(res.data.room);
         setLoading(false);
       })
-      .catch((err) => {
-        console.log(err);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, []);
 
   if (loading) return <div>Loading...</div>;
 
-  if (!room) return <div>No room allocated</div>;
+  if (!room)
+    return <div className="text-center mt-4">No hostel allocated</div>;
 
   return (
     <div>
-      <h2 className="mb-4">Room Details</h2>
+      <h2 className="mb-4">Hostel Details</h2>
 
       <div className="card p-4">
         <div className="row">
@@ -72,4 +68,4 @@ function Room_details() {
   );
 }
 
-export default Room_details;
+export default RoomDetails;

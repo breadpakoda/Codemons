@@ -278,6 +278,236 @@ app.get("/attendance/details/:course", verifyToken, (req, res) => {
   });
 });
 
+app.get("/room", verifyToken, (req, res) => {
+
+  // ✅ ADD THIS BLOCK HERE
+  db.query(
+    "SELECT residence_type FROM Students WHERE roll_no=?",
+    [req.user.rollNo],
+    (err, student) => {
+      if (student[0].residence_type !== "Hostel") {
+        return res.json({ room: null });
+      }
+
+      // 👇 KEEP YOUR ORIGINAL CODE INSIDE HERE
+      const sql = `
+        SELECT 
+          h.hostel_name,
+          r.room_no,
+          r.capacity,
+          r.occupied_count,
+          h.warden_name,
+          h.warden_contact
+        FROM RoomAllocations ra
+        JOIN Rooms r 
+          ON ra.room_no = r.room_no AND ra.hostel_id = r.hostel_id
+        JOIN Hostels h 
+          ON h.hostel_id = r.hostel_id
+        WHERE ra.student_roll_no = ?
+      `;
+
+      db.query(sql, [req.user.rollNo], (err, result) => {
+        if (err) return res.status(500).json({ message: "DB error" });
+
+        if (result.length === 0) {
+          return res.json({ room: null });
+        }
+
+        res.json({ room: result[0] });
+      });
+    }
+  );
+});
+
+
+
+// complaint
+
+const Complaint = mongoose.model("Complaint", new mongoose.Schema({
+  student_roll_no: String,
+  text: String,
+  status: { type: String, default: "Pending" }, // Pending / Resolved
+  created_at: { type: Date, default: Date.now }
+}));
+
+app.post("/complaints", verifyToken, async (req, res) => {
+  const { text } = req.body;
+
+  const complaint = await Complaint.create({
+    student_roll_no: req.user.rollNo,
+    text,
+  });
+
+  res.json({ complaint });
+});
+
+app.get("/complaints", verifyToken, async (req, res) => {
+  const data = await Complaint.find({
+    student_roll_no: req.user.rollNo,
+  }).sort({ created_at: -1 });
+
+  res.json({ complaints: data });
+});
+
+app.delete("/complaints/:id", verifyToken, async (req, res) => {
+  await Complaint.deleteOne({
+    _id: req.params.id,
+    student_roll_no: req.user.rollNo,
+  });
+
+  res.json({ message: "Deleted" });
+});
+
+
+// hostel payment
+
+
+app.post("/hostel/pay", verifyToken, (req, res) => {
+  const { roomType, extraAmount, remark, method } = req.body;
+
+  const hostel_id = 1;
+  const room_no = roomType === "2" ? "101" : "102";
+  const baseAmount = roomType === "2" ? 60000 : 50000;
+  const total = baseAmount + Number(extraAmount || 0);
+
+  // allocation
+  db.query(
+    "INSERT INTO RoomAllocations (student_roll_no, room_no, hostel_id, start_date) VALUES (?,?,?,CURDATE())",
+    [req.user.rollNo, room_no, hostel_id]
+  );
+
+  // fees
+  db.query(
+    "INSERT INTO Fees (student_roll_no, amount, type, status, notes, due_date) VALUES (?,?,?,?,?,CURDATE())",
+    [req.user.rollNo, total, "hostel", "paid", remark]
+  );
+
+  // ✅ send receipt data
+  res.json({
+    receipt: {
+      roll_no: req.user.rollNo,
+      room_no,
+      hostel_id,
+      amount: total,
+      method,
+      remark,
+      date: new Date(),
+    },
+  });
+});
+
+
+const handlePay = (method) => {
+  axios
+    .post(
+      `${API}/hostel/pay`,
+      {
+        roomType,
+        extraAmount: extra,
+        remark,
+        method,
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    .then((res) => {
+      setReceipt(res.data.receipt); // ✅ store receipt
+      setPaymentStep(false);
+    });
+};
+
+
+// eventt
+
+const Event = mongoose.model("Event", new mongoose.Schema({
+  title: String,
+  description: String,
+  date: String,
+  location: String,
+  created_at: { type: Date, default: Date.now }
+}));
+
+app.get("/events", async (req, res) => {
+  const events = await Event.find().sort({ date: 1 });
+  res.json({ events });
+});
+
+app.post("/events", async (req, res) => {
+  const { title, description, date, location } = req.body;
+
+  const event = await Event.create({
+    title,
+    description,
+    date,
+    location
+  });
+
+  res.json({ event });
+});
+
+
+// bus data fetching
+
+app.get("/bus/info", verifyToken, (req, res) => {
+  const sql = `
+    SELECT s.name, s.roll_no, s.transport_type
+    FROM Students s
+    WHERE s.roll_no = ?
+  `;
+
+  db.query(sql, [req.user.rollNo], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+
+    if (result[0].transport_type !== "Bus") {
+      return res.json({ isBusUser: false });
+    }
+
+    res.json({
+      isBusUser: true,
+      student: result[0],
+    });
+  });
+});
+
+
+app.post("/bus/calculate", (req, res) => {
+  const { distance } = req.body;
+
+  let amount = 0;
+  if (distance <= 5) amount = 10000;
+  else if (distance <= 10) amount = 15000;
+  else amount = 20000;
+
+  res.json({ amount });
+});
+
+
+app.post("/bus/pay", verifyToken, (req, res) => {
+  const { amount, remark, method } = req.body;
+
+  db.query(
+    "INSERT INTO Fees (student_roll_no, amount, type, status, notes, due_date) VALUES (?,?,?,?,?,CURDATE())",
+    [req.user.rollNo, amount, "bus", "paid", remark]
+  );
+
+  res.json({
+    receipt: {
+      roll_no: req.user.rollNo,
+      amount,
+      method,
+      remark,
+      date: new Date(),
+    },
+  });
+});
+
+
+
+
+
+
+
+
+
 /* ───────── START SERVER ───────── */
 app.listen(process.env.PORT, () => {
   console.log("Server running on port", process.env.PORT);

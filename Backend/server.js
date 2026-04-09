@@ -676,8 +676,6 @@ app.post("/admin/events", verifyAdmin, async (req, res) => {
 });
 
 
-<<<<<<< HEAD
-=======
 function verifyTeacher(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
 
@@ -827,13 +825,10 @@ app.get("/teacher/students", verifyTeacher, (req, res) => {
     res.json({ students: result });
   });
 });
->>>>>>> 1e7fd8d (only thing left is implimenting the ai agent, added the readme file)
 
 
 
 
-<<<<<<< HEAD
-=======
 // GET QUIZ (for students)
 app.get("/quiz", async (req, res) => {
   const quizzes = await Quiz.find();
@@ -865,7 +860,6 @@ app.post(
 
 
 
->>>>>>> 1e7fd8d (only thing left is implimenting the ai agent, added the readme file)
 
 
 

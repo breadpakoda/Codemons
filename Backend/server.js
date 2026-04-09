@@ -119,6 +119,7 @@ app.get("/courses", verifyToken, (req, res) => {
 app.get("/attendance", verifyToken, (req, res) => {
   const sql = `
     SELECT 
+      c.course_code,
       c.course_name,
       COUNT(a.status) AS total_classes,
       SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS present_count,
@@ -129,7 +130,7 @@ app.get("/attendance", verifyToken, (req, res) => {
     FROM Attendance a
     JOIN Courses c ON a.course_code = c.course_code
     WHERE a.student_roll_no = ?
-    GROUP BY c.course_name
+    GROUP BY c.course_code, c.course_name
   `;
 
   db.query(sql, [req.user.rollNo], (err, result) => {
@@ -258,6 +259,23 @@ app.post("/quiz/submit/:course", verifyToken, async (req, res) => {
   });
 
   res.json(result);
+});
+
+
+
+app.get("/attendance/details/:course", verifyToken, (req, res) => {
+  const sql = `
+    SELECT date, status
+    FROM Attendance
+    WHERE student_roll_no = ? AND course_code = ?
+    ORDER BY date DESC
+  `;
+
+  db.query(sql, [req.user.rollNo, req.params.course], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+
+    res.json({ details: result });
+  });
 });
 
 /* ───────── START SERVER ───────── */

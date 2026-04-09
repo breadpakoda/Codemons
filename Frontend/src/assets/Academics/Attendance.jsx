@@ -48,6 +48,7 @@ function Attendance() {
         setSelected(course_code);
       });
   }
+  
 
   function closeModal() {
     setSelected(null);
@@ -97,16 +98,15 @@ function Attendance() {
                 >
                   <td>{a.course_name}</td>
                   <td>{a.total_classes}</td>
-                  <td>{a.present}</td>
-                  <td>{a.absent}</td>
-                  <td>{a.late}</td>
+                  <td>{a.present_count}</td>
+                  <td>{a.total_classes - a.present_count}</td>
+                  <td>0</td>
                   <td>
                     <span
-                      className={`badge ${
-                        a.attendance_percent >= 75
+                      className={`badge ${a.attendance_percent >= 75
                           ? "bg-success"
                           : "bg-danger"
-                      }`}
+                        }`}
                     >
                       {a.attendance_percent}%
                     </span>
@@ -145,8 +145,8 @@ function Attendance() {
                           d.status === "Present"
                             ? "text-success"
                             : d.status === "Absent"
-                            ? "text-danger"
-                            : "text-warning"
+                              ? "text-danger"
+                              : "text-warning"
                         }
                       >
                         {d.status}
